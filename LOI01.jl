@@ -1,7 +1,3 @@
-include("hai_phai.jl")
+include("hai_phia.jl")
 println("--- CA LOI01 (Chứa khuyên) ---")
-try
-    hai_phia(3, [(1, 1), (2, 3)])
-catch e
-    println("Bắt lỗi thành công: ", e)
-end
+println("Actual Output: ", hai_phia([[1], [3], [2]]))
