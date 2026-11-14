@@ -1,3 +1,3 @@
-include("hai_phai.jl")
+include("hai_phia.jl")
 println("--- CA BIEN01 (n = 1) ---")
-println("Actual Output: ", hai_phia(1, Tuple{Int,Int}[]))
+println("Actual Output: ", hai_phia([Int[]]))
