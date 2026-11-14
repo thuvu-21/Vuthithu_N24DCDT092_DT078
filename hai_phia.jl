@@ -31,7 +31,7 @@ end
 # 2. Xây dựng danh sách kề từ danh sách cạnh
 function xay_ke(n::Int, canh::Vector{Tuple{Int, Int}})
     kiem_tra_input(n, canh)
-    ke = [Int[] for _ in 1:n]
+    ke = [Int[] for _ in 1:n] # Không dùng fill([], n) theo giáo trình tr.141
     for (u, v) in canh
         if !(v in ke[u])
             push!(ke[u], v)
@@ -40,22 +40,21 @@ function xay_ke(n::Int, canh::Vector{Tuple{Int, Int}})
             push!(ke[v], u)
         end
     end
+    foreach(sort!, ke)
     return ke
 end
 
 # 3. Thuật toán BFS tô màu đồ thị sử dụng hàng đợi (Queue)
 function bfs_to_mau!(ke::Vector{Vector{Int}}, s::Int, mau::Vector{Int})
-    n = length(ke)
     queue = Int[]
-    
     push!(queue, s)
     mau[s] = 1 # Gắn nhãn màu 1 cho đỉnh bắt đầu
     
     while !isempty(queue)
-        u = popfirst!(queue) # Lấy đỉnh ra khỏi hàng đợi
+        u = popfirst!(queue)
         for v in ke[u]
             if mau[v] == -1
-                # Chưa tô màu -> tô màu ngược lại với u (1 hoặc 2)
+                # Chưa tô màu -> tô màu ngược lại với u (0 hoặc 1)
                 mau[v] = 1 - mau[u]
                 push!(queue, v)
             elseif mau[v] == mau[u]
@@ -68,16 +67,9 @@ function bfs_to_mau!(ke::Vector{Vector{Int}}, s::Int, mau::Vector{Int})
 end
 
 # 4. Kiểm tra tính đúng đắn của việc tô màu toàn bộ đồ thị
-function kiem_mau(ke::Vector{Vector{Int}}, mau::Vector{Int})
-    n = length(ke)
-    for u in 1:n
-        for v in ke[u]
-            if mau[u] != -1 && mau[v] != -1 && mau[u] == mau[v]
-                return false
-            end
-        end
-    end
-    return true
+function kiem_mau(n::Int, ke::Vector{Vector{Int}}, mau::Vector{Int})
+    all(c -> c == 0 || c == 1, mau) || return false
+    return all(mau[u] != mau[v] for u in 1:n for v in ke[u])
 end
 
 # 5. Hàm chính kiểm tra đồ thị hai phía
@@ -86,18 +78,13 @@ function hai_phia(n::Int, canh::Vector{Tuple{Int, Int}})
     kiem_tra_input(n, canh)
     
     ke = xay_ke(n, canh)
-    n = length(ke)
     mau = fill(-1, n)
-    
-    nhom1 = Int[]
-    nhom2 = Int[]
-    xung_dot = Int[]
     
     for i in 1:n
         if mau[i] == -1
             if !bfs_to_mau!(ke, i, mau)
                 # Tìm ra các đỉnh xung đột nếu không thỏa mãn
-                # Lọc ra các cạnh vi phạm tính chất hai phía
+                xung_dot = Int[]
                 for u in 1:n
                     if mau[u] != -1
                         for v in ke[u]
@@ -109,28 +96,21 @@ function hai_phia(n::Int, canh::Vector{Tuple{Int, Int}})
                     end
                 end
                 sort!(xung_dot)
-                # Phân loại nhóm màu dựa trên mảng mau
-                for j in 1:n
-                    if mau[j] == 1
-                        push!(nhom1, j)
-                    elseif mau[j] == 2
-                        push!(nhom2, j)
-                    end
-                end
-                sort!(nhom1); sort!(nhom2)
-                return (false, (nhom1, nhom2), unique(xung_dot))
+                
+                # Phân loại nhóm màu dựa trên mảng mau (0 và 1)
+                nhom0 = [j for j in 1:n if mau[j] == 0]
+                nhom1 = [j for j in 1:n if mau[j] == 1]
+                sort!(nhom0); sort!(nhom1)
+                
+                return (false, (nhom0, nhom1), unique(xung_dot))
             end
         end
     end
     
-    # Nếu thành công, phân chia đỉnh vào hai nhóm
-    for i in 1:n
-        if mau[i] == 1 || mau[i] == 1 # Gán chuẩn nhóm 1
-            push!(nhom1, i)
-        else
-            push!(nhom2, i)
-        end
-    end
-    sort!(nhom1); sort!(nhom2)
-    return (true, (nhom1, nhom2), Int[])
+    # Nếu thành công, phân chia đỉnh vào hai nhóm màu 0 và 1
+    nhom0 = [i for i in 1:n if mau[i] == 0]
+    nhom1 = [i for i in 1:n if mau[i] == 1]
+    sort!(nhom0); sort!(nhom1)
+    
+    return (true, (nhom0, nhom1), mau)
 end
