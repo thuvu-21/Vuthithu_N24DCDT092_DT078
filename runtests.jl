@@ -1,6 +1,6 @@
 # ==========================================
 # FILE: runtests.jl
-# Tệp kiểm thử tự động toàn bộ ca test đồ án
+# Tệp kiểm thử tự động toàn bộ ca test đồ án (Bản ổn định)
 # ==========================================
 
 include("hai_phia.jl")
